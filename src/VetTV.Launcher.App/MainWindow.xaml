@@ -5,7 +5,9 @@
       <TextBlock Text="VetTV" FontSize="40" FontWeight="Bold" Foreground="#FF5BD1"/>
       <TextBlock x:Name="Status" VerticalAlignment="Center" Foreground="#A0A0B8" FontSize="18"/>
     </StackPanel>
-    <GridView x:Name="Library" Grid.Row="1" Margin="0,24,0,0" SelectionMode="Single" IsItemClickEnabled="True"
+    <Pivot x:Name="Tabs" Grid.Row="1" Margin="0,24,0,0">
+      <PivotItem Header="Library">
+    <GridView x:Name="Library" SelectionMode="Single" IsItemClickEnabled="True"
               ItemClick="Library_ItemClick" XYFocusKeyboardNavigation="Enabled" TabFocusNavigation="Once">
       <GridView.ItemTemplate><DataTemplate>
         <Border Width="240" Height="135" Background="#1E1E2E" CornerRadius="10" Padding="14">
@@ -16,6 +18,8 @@
         </Border>
       </DataTemplate></GridView.ItemTemplate>
     </GridView>
+      </PivotItem>
+    </Pivot>
     <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="16" Margin="0,16,0,0">
       <ToggleSwitch x:Name="StartupToggle" Header="Start on sign-in" Foreground="White" Toggled="StartupToggle_Toggled"/>
       <ToggleSwitch x:Name="ShellToggle" Header="Shell mode (Pro)" Foreground="White" Toggled="ShellToggle_Toggled" IsEnabled="False"/>

@@ -12,7 +12,12 @@
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Build flavour: Community (GitHub, default) includes the PlayStation hub; Store excludes it (Store policy 10.13.10).
+         Store build: msbuild /p:VetTVEdition=Store -->
+    <VetTVEdition Condition="'$(VetTVEdition)' == ''">Community</VetTVEdition>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(VetTVEdition)' == 'Community'"><DefineConstants>$(DefineConstants);VETTV_COMMUNITY</DefineConstants></PropertyGroup>
+  <ItemGroup Condition="'$(VetTVEdition)' != 'Community'"><Compile Remove="Hub\**" /></ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.*" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.*" />

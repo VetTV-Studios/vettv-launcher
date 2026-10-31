@@ -43,6 +43,11 @@ _pro = EditionFactory.Create(WinRT.Interop.WindowNative.GetWindowHandle(this), _
         Closed += (_, _) => { _pad.Stop(); _hotkey.Dispose(); };
         _ = LoadAsync();
         _ = RefreshLicenseAsync();
+#if VETTV_COMMUNITY
+        var hub = new Hub.PlayStationHubView(this);
+        Tabs.Items.Add(new PivotItem { Header = "PlayStation", Content = hub });
+        Closed += (_, _) => hub.Dispose();
+#endif
     }
 
     async Task RefreshLicenseAsync()
@@ -80,11 +85,17 @@ _pro = EditionFactory.Create(WinRT.Interop.WindowNative.GetWindowHandle(this), _
             case NavAction.Left: FocusManager.TryMoveFocus(FocusNavigationDirection.Left); break;
             case NavAction.Right: FocusManager.TryMoveFocus(FocusNavigationDirection.Right); break;
             case NavAction.Accept:
-                if (FocusManager.GetFocusedElement(Root.XamlRoot) is GridViewItem { Content: GameEntry g }) Launch(g);
-                else if (FocusManager.GetFocusedElement(Root.XamlRoot) is Button b) ExitButton_Click(b, new RoutedEventArgs());
+                if (FocusManager.GetFocusedElement(Root.XamlRoot) is GridViewItem { Content: GameEntry g } && g.Source != GameSource.Emulator) Launch(g);
+#if VETTV_COMMUNITY
+                else if (FocusManager.GetFocusedElement(Root.XamlRoot) is GridViewItem { Content: GameEntry ps3 }) Hub.PlayStationHubView.LaunchPs3(ps3);
+#endif
+                else if (FocusManager.GetFocusedElement(Root.XamlRoot) is Button b)
+                    new Microsoft.UI.Xaml.Automation.Peers.ButtonAutomationPeer(b).Invoke();
                 else if (FocusManager.GetFocusedElement(Root.XamlRoot) is ToggleSwitch t) t.IsOn = !t.IsOn;
                 break;
             case NavAction.Menu: ExitButton.Focus(FocusState.Keyboard); break;
+            case NavAction.PageLeft: Tabs.SelectedIndex = Math.Max(0, Tabs.SelectedIndex - 1); break;
+            case NavAction.PageRight: Tabs.SelectedIndex = Math.Min(Tabs.Items.Count - 1, Tabs.SelectedIndex + 1); break;
             case NavAction.RecoveryRequested: ExitToDesktop(); break;
         }
     }
