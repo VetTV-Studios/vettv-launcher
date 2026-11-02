@@ -2,10 +2,10 @@
 
 A full-screen, gamepad-first game launcher for Windows (WinUI 3 / .NET 8) by VetTV Studios.
 
-**Status:** M1 preview: Steam and Xbox installed libraries, controller navigation, launching games, start on sign-in.
+**Status:** Preview: Steam, Epic, GOG and Heroic installed libraries, controller navigation, launching games, start on sign-in.
 
 ## Features (free, open source)
-- One library for Steam (local `libraryfolders.vdf` + `appmanifest_*.acf`) and Xbox / Microsoft Store installed games. Epic, GOG and emulator folders are coming in M2.
+- One library for installed games from Steam (`libraryfolders.vdf` + `appmanifest_*.acf`), Epic Games Launcher (`.item` manifests), GOG Galaxy / GOG installers (registry) and Heroic Games Launcher (Epic, GOG and Amazon installs). Games found by both Heroic and Epic/GOG show once, launched through the native launcher. Login/token files are never read. Emulator folders are coming later.
 - Controller-first navigation (D-pad/stick with auto-repeat, A to launch, B to go back).
 - Start on sign-in.
 - Shell-mode **recovery** is always included: if you use VetTV Pro's shell mode, the open-source watchdog, recovery hotkey (Ctrl+Alt+Shift+F12 or hold View+Menu for 3 s) and "Exit to Desktop" always get you back to Explorer. See [docs/RECOVERY.md](docs/RECOVERY.md).

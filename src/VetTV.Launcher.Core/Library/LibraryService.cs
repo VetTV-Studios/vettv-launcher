@@ -1,6 +1,7 @@
 using VetTV.Launcher.Core.Providers;
 namespace VetTV.Launcher.Core.Library;
 /// Aggregates providers; a failing provider never breaks the whole library.
+/// Duplicates (same store id, e.g. epic:Foo from Epic and Heroic) keep the native launcher's entry.
 public sealed class LibraryService
 {
     readonly IEnumerable<ILibraryProvider> _providers;
@@ -11,7 +12,7 @@ public sealed class LibraryService
     {
         Errors.Clear();
         var all = new Dictionary<string, GameEntry>(StringComparer.OrdinalIgnoreCase);
-        foreach (var p in _providers)
+        foreach (var p in _providers.OrderBy(p => p.Source == GameSource.Heroic ? 1 : 0))
         {
             try
             {

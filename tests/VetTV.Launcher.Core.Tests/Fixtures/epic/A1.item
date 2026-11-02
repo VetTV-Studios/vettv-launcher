@@ -1,0 +1,3 @@
+{ "FormatVersion": 0, "bIsIncompleteInstall": false, "DisplayName": "Hades", "InstallLocation": "C:\\Program Files\\Epic Games\\Hades",
+  "AppName": "Min", "CatalogNamespace": "min-ns", "CatalogItemId": "cat123", "MainGameAppName": "Min",
+  "MainGameCatalogNamespace": "min-ns", "MainGameCatalogItemId": "cat123", "AppCategories": ["public","games","applications"] }

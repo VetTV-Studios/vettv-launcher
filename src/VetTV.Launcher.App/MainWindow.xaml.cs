@@ -67,8 +67,11 @@ _pro = EditionFactory.Create(WinRT.Interop.WindowNative.GetWindowHandle(this), _
     {
         Status.Text = "Loading library…";
         var steamRoot = _reg.GetValue(@"Software\Valve\Steam", "SteamPath");
-        var providers = new List<ILibraryProvider> { new XboxProvider(StoreXboxEnumerator.EnumerateAsync) };
-        if (steamRoot != null) providers.Insert(0, new SteamLocalProvider(steamRoot.Replace('/', '\\')));
+        var providers = new List<ILibraryProvider>();
+        if (steamRoot != null) providers.Add(new SteamLocalProvider(steamRoot.Replace('/', '\\')));
+        providers.Add(new EpicProvider(EpicProvider.DefaultManifestDir));
+        providers.Add(new GogProvider(new WindowsMachineRegistry()));
+        providers.Add(new HeroicProvider(HeroicProvider.DefaultRoot));
         var lib = new LibraryService(providers);
         var games = await lib.LoadAsync();
         Library.ItemsSource = games;
@@ -104,10 +107,15 @@ _pro = EditionFactory.Create(WinRT.Interop.WindowNative.GetWindowHandle(this), _
 
     async void Launch(GameEntry g)
     {
-        if (!LauncherCommand.IsAllowed(g.LaunchUri)) { Status.Text = "Blocked unknown launch type"; return; }
         Status.Text = $"Launching {g.Title}…";
-        if (g.LaunchUri.StartsWith("shell:AppsFolder", StringComparison.OrdinalIgnoreCase))
-            Process.Start(new ProcessStartInfo("explorer.exe", g.LaunchUri) { UseShellExecute = true });
+        if (g.LaunchExe is { } exe && File.Exists(exe))
+        {
+            var psi = new ProcessStartInfo(exe) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(exe) ?? "" };
+            foreach (var a in g.LaunchArgs ?? Array.Empty<string>()) psi.ArgumentList.Add(a);
+            Process.Start(psi);
+            return;
+        }
+        if (!LauncherCommand.IsAllowed(g.LaunchUri)) { Status.Text = "Blocked unknown launch type"; return; }
         else
             await Windows.System.Launcher.LaunchUriAsync(new Uri(g.LaunchUri));
     }

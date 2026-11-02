@@ -132,19 +132,11 @@ public class StartupAndLibraryTests
         Assert.Equal(new[] { "Epic: IOException" }, lib.Errors); // no exception message (could hold secrets)
     }
 
-    [Fact] public async Task Xbox_filter_keeps_only_games()
-    {
-        StorePackageInfo P(string n, bool game, bool fw = false, bool sys = false) => new($"{n}_8wekyb3d8bbwe", n, $"{n}!App", $@"C:\XboxGames\{n}", fw, false, game, sys);
-        var x = new XboxProvider(_ => Task.FromResult<IEnumerable<StorePackageInfo>>(new[] { P("Forza", true), P("Calculator", false), P("VCLibs", true, fw: true), P("Sys", true, sys: true) }));
-        var g = Assert.Single(await x.GetGamesAsync());
-        Assert.Equal("xbox:Forza_8wekyb3d8bbwe", g.Id);
-        Assert.Equal(@"shell:AppsFolder\Forza!App", g.LaunchUri);
-        Assert.False(new XboxProvider().IsAvailable());
-    }
-
     [Theory]
     [InlineData("steam://rungameid/620", true)]
-    [InlineData(@"shell:AppsFolder\Forza!App", true)]
+    [InlineData("com.epicgames.launcher://apps/ns%3Acat%3AFortnite?action=launch&silent=true", true)]
+    [InlineData("heroic://launch/legendary/Quail", true)]
+    [InlineData(@"shell:AppsFolder\Forza!App", false)]
     [InlineData("file:///C:/evil.exe", false)]
     [InlineData("cmd.exe /c", false)]
     public void Launch_allowlist(string uri, bool ok) => Assert.Equal(ok, LauncherCommand.IsAllowed(uri));

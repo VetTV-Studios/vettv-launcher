@@ -1,23 +1,56 @@
-# MSI GL66 test plan (Windows build 26340)
-Build: Visual Studio 2022 17.8+, x64, `src/VetTV.Launcher.App` (Community build is the default; Store build: `/p:VetTVEdition=Store`).
-Before shell-mode tests: create a second local admin account and a restore point (see docs/RECOVERY.md).
+# VetTV Launcher: MSI test checklist
 
-## A. M1 core
-1. App builds; `VetTV.Launcher.Watchdog.exe` is in the output folder.
-2. Opens full screen; Steam and Xbox installed games appear; source errors (if any) shown in status.
-3. Controller: D-pad/stick moves with auto-repeat; A launches a Steam game and an Xbox game; LB/RB switch tabs.
-4. Start on sign-in: toggle on → sign out/in → launcher opens. Toggle off → doesn't.
-5. Recovery (shell mode needs Pro or a Store build to *enable*; recovery works in all builds): Exit to Desktop; Ctrl+Alt+Shift+F12; hold View+Menu 3 s; kill the launcher 3× within 2 min → Explorer returns and registry is restored; Shift held at sign-in; `SAFE_MODE` file.
+Machine: MSI Pulse GL66, Windows 11 build 26300.9818. Use only your own games, discs and BIOS dumps.
+For every step, reply with: **step number, pass/fail, and the note asked for**. A photo of the screen is fine.
 
-## B. PlayStation hub (Community build only)
-Setup: USB DVD drive connected; note its drive letter. Use only your own discs and your own BIOS dumps.
-1. **Store build check:** build with `/p:VetTVEdition=Store` → no "PlayStation" tab. Community build → tab present.
-2. **Emulator manager:** for RetroArch, Beetle PSX, PCSX2, RPCS3 press Install/Update → a dialog shows version + official URL; Cancel downloads nothing; Install downloads, verifies checksum (if published), extracts to `%LOCALAPPDATA%\VetTV\Emulators`. Record whether Windows `tar` extracts the `.7z` files on build 26340 (VERIFY).
-3. **BIOS:** choose your PS1 BIOS → "PS1 BIOS OK: scph550x" (or "not recognised" with md5 for other dumps). Copied to RetroArch `system\`. For PS2, set the BIOS inside PCSX2's setup wizard.
-4. **Disc detection:** with the hub open, insert a PS2 disc → within ~5 s the title/serial appears (e.g. "PS2: Final Fantasy X (SLUS-20312)"); eject → "No disc". Repeat with a PS1 disc, an audio CD ("Not a PS1/PS2 game disc"), and with a disc already inserted before launching the app. Test once without PCSX2 installed (serial only, no title).
-5. **PS2 from disc:** A on "Play disc" → PCSX2 starts fullscreen from the drive (`-disc E:`). Play 5 min, note stutter on loads; quit → back to the launcher.
-6. **PS1 from disc:** "Play disc" → RetroArch + Beetle PSX with `cdrom://e:/drive1.cue`. Record: works / RetroArch quits (hub should then suggest the copy fallback) / other error. If the HW renderer is Vulkan and the disc fails, switch Beetle to OpenGL and retry.
-7. **PS1 image-copy fallback:** "Copy PS1 disc to image, then play" → progress %, creates `%LOCALAPPDATA%\VetTV\PlayStation\Images\<serial>.bin/.cue`, then starts. Test a multi-track disc (CD audio) and confirm music plays. Note copy time.
-8. **PS3:** add a folder with your own disc dump (`<Game>\PS3_GAME\...`) → game appears with its title; install PS3 firmware via the "PS3 firmware (Sony)" link + RPCS3; launch → RPCS3 `--no-gui --fullscreen`. Insert a PS3 disc → hub says it can't play it from disc. PSN installs in RPCS3's `dev_hdd0\game` appear too.
-9. Controller-only pass through the whole hub (focus reaches every button; A activates).
-Report each item as pass/fail with notes and the emulator versions.
+## A. Install and build (one time)
+1. **Install** these on the MSI (nothing else is needed):
+   - .NET 8 SDK x64: `winget install Microsoft.DotNet.SDK.8`
+   - Git: `winget install Git.Git`
+   - Windows App SDK 1.6 runtime: `winget install Microsoft.WindowsAppRuntime.1.6`
+   Then close and reopen the terminal. Expect: `dotnet --list-sdks` shows an 8.0.x line. Report: that line.
+2. **Get the code:** copy the `vettv-launcher` folder Grok Bot gives you to `C:\Dev\vettv-launcher` (it has local changes that aren't on GitHub yet), then `cd C:\Dev\vettv-launcher`.
+3. **Run the tests:** `dotnet test VetTV.Launcher.sln`. Expect: "Passed!" with 0 failed. Report: the total count.
+4. **Build the app (Community build, includes the PlayStation hub):**
+   `dotnet build src\VetTV.Launcher.App\VetTV.Launcher.App.csproj -c Release -p:Platform=x64`
+   Expect: "0 Error(s)". Report: the error/warning lines if it fails (this is the first-ever Windows build).
+5. **Store build check:** run the same command with `-p:VetTVEdition=Store` added. Expect: 0 errors. Report: pass/fail.
+6. **Start it:** run `src\VetTV.Launcher.App\bin\x64\Release\net8.0-windows10.0.22621.0\win-x64\VetTV.Launcher.App.exe` (from the step 4 build).
+   Expect: full screen, a game grid, a status line like "N games". `VetTV.Launcher.Watchdog.exe` is in the same folder. Report: the status line text.
+
+## B. Game libraries
+Install at least one free game in each launcher first (and note which).
+1. **Steam:** your installed Steam games appear. A on one starts it through Steam. Report: missing or extra games (e.g. tools/redistributables).
+2. **Epic Games Launcher:** your installed Epic games appear (not DLC, not half-downloaded games). A starts the game through Epic. Report: does it start straight away or only open Epic?
+3. **GOG Galaxy:** your installed GOG games appear (not DLC). A starts the game through Galaxy. Then quit Galaxy completely (tray icon > Exit) and try again. Report: works with Galaxy? Without Galaxy running?
+4. **Heroic:** install Heroic (heroicgameslauncher.com), sign in, install one Epic and one GOG game (and an Amazon game if you have one) in Heroic only. Restart VetTV. Expect: they appear; A starts them through Heroic. Report: titles shown correctly? Did each one start?
+5. **No duplicates:** install the same game in both Epic and Heroic (or GOG Galaxy and Heroic) if possible. Expect: it shows once and launches through Epic/GOG. Report: shown once?
+6. **Soft failure:** uninstall or close any launcher; VetTV still opens and shows the others. Report: any "source error" in the status line.
+7. **Controller:** D-pad/stick moves with auto-repeat, A launches, LB/RB switch tabs. Report: anything that feels wrong.
+
+## C. PlayStation hub (Community build only)
+Connect the USB DVD drive and note its letter (e.g. E:).
+1. **Tab:** the Community build has a "PlayStation" tab; the Store build (A5) doesn't. Report: pass/fail.
+2. **Emulators + .7z unpacking:** in the hub, press Install/Update for RetroArch, Beetle PSX, PCSX2 and RPCS3. Expect: a dialog with version + official URL each time; Cancel downloads nothing; Install unpacks into `%LOCALAPPDATA%\VetTV\Emulators`. Windows' built-in `tar` unpacks the `.7z` files. Report: which installed, and any ".7z"/"tar" error.
+3. **BIOS hash check:** pick your PS1 BIOS file. Expect: "PS1 BIOS OK: scph…", or "not recognised" plus an MD5 for an unknown dump. Report: the exact text. (PS2 BIOS is set in PCSX2's own setup wizard.)
+4. **Disc detection (raw CD read):** insert a PS1 disc, then a PS2 disc, then an audio CD. Expect within ~5 s: "PS1: <title> (SLUS-xxxxx)", "PS2: …", and "Not a PS1/PS2 game disc". Eject: "No disc". Also try starting VetTV with a disc already in. Report: the text shown for each.
+5. **PS1 from disc (cdrom://):** PS1 disc in, press "Play disc". Expect: RetroArch + Beetle PSX starts full screen from the disc. Report: works / RetroArch closes / error. If it fails: in RetroArch set Beetle's renderer to OpenGL and retry; report that result too.
+6. **PS1 copy fallback:** "Copy PS1 disc to image, then play". Expect: progress %, then `<serial>.bin/.cue` in `%LOCALAPPDATA%\VetTV\PlayStation\Images`, then the game starts. Use a disc with CD music if you have one. Report: copy time and whether music plays.
+7. **PS2 from disc:** PS2 disc in, "Play disc". Expect: PCSX2 starts full screen from the drive. Play 5 minutes, then quit. Expect: back in VetTV. Report: stutter on loads?
+8. **RPCS3:** install PS3 firmware using the "PS3 firmware (Sony)" link inside RPCS3. Add a folder with your own PS3 game dump. Expect: it appears with its title; A starts RPCS3 full screen. A PS3 disc in the drive shows "can't play from disc". Report: pass/fail and the RPCS3 version.
+9. **Controller only:** go through the whole hub with the pad. Report: any button you can't reach.
+
+## D. Start on sign-in
+1. Turn "Start on sign-in" on, sign out and back in. Expect: VetTV opens. Turn it off, repeat. Expect: it doesn't. Report: pass/fail.
+
+## E. Recovery (do this before any shell-mode test)
+First make a second local admin account and a restore point (see docs/RECOVERY.md).
+Shell mode needs Pro to switch on; these recovery paths work in every build.
+1. **Exit to Desktop** button → Explorer/desktop appears. Report: pass/fail.
+2. **Ctrl+Alt+Shift+F12** → same. Report: pass/fail.
+3. **Hold View+Menu for 3 s** on the pad → same. Report: pass/fail.
+4. **Watchdog:** with shell mode on, end VetTV in Task Manager 3 times within 2 minutes. Expect: Explorer comes back and shell mode is turned off. Report: pass/fail and `%LOCALAPPDATA%\VetTV\Launcher\watchdog.log`.
+5. **Shift at sign-in** and the empty **`SAFE_MODE`** file in `%LOCALAPPDATA%\VetTV\Launcher` → Explorer starts instead of VetTV. Report: pass/fail for each.
+
+## F. Xbox mode home-app picker (Windows feature, not a game library)
+1. Open Settings > Gaming > Xbox mode (it may still be called "Full screen experience"). Report: does the page exist, and is there a "Choose home app" option or only an on/off toggle? A screenshot is best. (VetTV won't be listed yet: that needs the MSIX build in M5. This step only checks whether the MSI offers the picker.)

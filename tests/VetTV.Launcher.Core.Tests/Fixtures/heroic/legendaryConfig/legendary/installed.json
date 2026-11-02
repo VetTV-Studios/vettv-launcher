@@ -1,0 +1,3 @@
+{ "Min": { "app_name": "Min", "title": "Hades", "install_path": "D:\\Heroic\\Hades", "is_dlc": false, "version": "1" },
+  "Quail": { "app_name": "Quail", "title": "Quail Game", "install_path": "D:\\Heroic\\Quail", "is_dlc": false },
+  "QuailDlc": { "app_name": "QuailDlc", "title": "Quail DLC", "install_path": "D:\\Heroic\\Quail", "is_dlc": true } }
